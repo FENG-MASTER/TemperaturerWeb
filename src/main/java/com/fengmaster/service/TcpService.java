@@ -43,7 +43,7 @@ public class TcpService implements Runnable{
     public TcpService() {
         try {
             if (serverSocket==null){
-                serverSocket=new ServerSocket(port,10, Inet4Address.getLoopbackAddress());
+                serverSocket=new ServerSocket(port,10, Inet4Address.getLocalHost());
                 logger.info("服务器在端口"+port+"等待消息");
             }
         } catch (IOException e) {
