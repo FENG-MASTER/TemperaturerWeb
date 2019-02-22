@@ -3,14 +3,9 @@ package com.fengmaster.service;
 import com.fengmaster.domain.DeviceModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -19,6 +14,7 @@ import java.util.List;
 
 /**
  * 传透协议(TCP) 服务层
+ * 这个类只负责接收socket
  * Created by Feng-master on 19/01/16.
  */
 @Service
@@ -67,11 +63,12 @@ public class TcpService implements Runnable{
 
                 deviceModels.add(new DeviceModel(socket));
 
-                OutputStream outputStream=socket.getOutputStream();
-                BufferedWriter writer=new BufferedWriter(new OutputStreamWriter(outputStream));
-                writer.write("{\"T\":\"C\"}");
-                writer.flush();
-                logger.info("写TC到socket中");
+                //TODO:测试用
+//                OutputStream outputStream=socket.getOutputStream();
+//                BufferedWriter writer=new BufferedWriter(new OutputStreamWriter(outputStream));
+//                writer.write("{\"T\":\"C\"}");
+//                writer.flush();
+//                logger.info("写TC到socket中");
             } catch (IOException e) {
                 e.printStackTrace();
             }

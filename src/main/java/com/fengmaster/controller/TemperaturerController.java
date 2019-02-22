@@ -32,6 +32,7 @@ public class TemperaturerController {
         return "controlpanel";
     }
 
+
     /**
      * 获取所有设备列表
      * @return

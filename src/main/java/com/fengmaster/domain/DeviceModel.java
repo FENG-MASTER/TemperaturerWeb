@@ -14,7 +14,7 @@ public class DeviceModel {
     private String name;
 
     /**
-     * 设备SN序列号
+     * 设备SN序列号,主KEY
      */
     private String SN;
 
@@ -59,5 +59,16 @@ public class DeviceModel {
 
     public void setSocket(Socket socket) {
         this.socket = socket;
+    }
+
+
+    @Override
+    public boolean equals(Object obj) {
+        return SN.equals(((DeviceModel)obj).SN);
+    }
+
+    @Override
+    public int hashCode() {
+        return SN.hashCode();
     }
 }
