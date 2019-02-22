@@ -1,15 +1,12 @@
 package com.fengmaster.domain;
 
+import java.net.Socket;
+
 /**
  * 设备信息实体对象
  * Created by Feng-master on 19/01/07.
  */
 public class DeviceModel {
-
-    /**
-     * 蓝牙地址
-     */
-    private String bluetoothAddress;
 
     /**
      * 设备名称
@@ -21,16 +18,15 @@ public class DeviceModel {
      */
     private String SN;
 
+    /**
+     * 设备对应的sim卡电话号码
+     */
+    private String phoneNum;
 
-    private String ip;
+    private Socket socket;
 
-
-    public String getBluetoothAddress() {
-        return bluetoothAddress;
-    }
-
-    public void setBluetoothAddress(String bluetoothAddress) {
-        this.bluetoothAddress = bluetoothAddress;
+    public DeviceModel(Socket socket) {
+        this.socket = socket;
     }
 
     public String getName() {
@@ -49,11 +45,19 @@ public class DeviceModel {
         this.SN = SN;
     }
 
-    public String getIp() {
-        return ip;
+    public String getPhoneNum() {
+        return phoneNum;
     }
 
-    public void setIp(String ip) {
-        this.ip = ip;
+    public void setPhoneNum(String phoneNum) {
+        this.phoneNum = phoneNum;
+    }
+
+    public Socket getSocket() {
+        return socket;
+    }
+
+    public void setSocket(Socket socket) {
+        this.socket = socket;
     }
 }

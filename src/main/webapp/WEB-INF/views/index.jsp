@@ -9,26 +9,32 @@
     <script src="../layui/layui.js"></script>
     <script src="../jquery.js"></script>
 </head>
-<body class="layui-layout-body">
+<body class="layui-layout-body" >
 <div class="layui-layout layui-layout-admin">
     <div class="layui-header">
         <div class="layui-logo">温控中心</div>
+        <ul class="layui-nav layui-layout-left">
+            <li class="layui-nav-item"><a  onclick="$('#iframe_body').attr('src','./device/list');">所有设备</a></li>
+            <li class="layui-nav-item"><a  onclick="$('#iframe_body').attr('src','./device/controlpanel');">我的设备</a></li>
+            <li class="layui-nav-item"><a >用户</a></li>
+
+        </ul>
     </div>
 
-    <div class="layui-side layui-bg-black">
-        <div class="layui-side-scroll">
-            <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
-            <ul class="layui-nav layui-nav-tree"  lay-filter="test">
-                <li class="layui-nav-item layui-nav-itemed">
-                    <a class=""  onclick="$('#iframe_body').attr('src','./device/list');">所有设备</a>
-                </li>
-                <li class="layui-nav-item">
-                    <a onclick="$('#iframe_body').attr('src','./device/controlpanel');">我的设备</a>
-                </li>
-                <li class="layui-nav-item"><a href="">建设中</a></li>
-            </ul>
-        </div>
-    </div>
+    <%--<div class="layui-side layui-bg-black">--%>
+        <%--<div class="layui-side-scroll">--%>
+            <%--<!-- 左侧导航区域（可配合layui已有的垂直导航） -->--%>
+            <%--<ul class="layui-nav layui-nav-tree"  lay-filter="test">--%>
+                <%--<li class="layui-nav-item layui-nav-itemed">--%>
+                    <%--<a class=""  onclick="$('#iframe_body').attr('src','./device/list');">所有设备</a>--%>
+                <%--</li>--%>
+                <%--<li class="layui-nav-item">--%>
+                    <%--<a onclick="$('#iframe_body').attr('src','./device/controlpanel');">我的设备</a>--%>
+                <%--</li>--%>
+                <%--<li class="layui-nav-item"><a href="">建设中</a></li>--%>
+            <%--</ul>--%>
+        <%--</div>--%>
+    <%--</div>--%>
 
     <div class="layui-body">
         <!-- 内容主体区域 -->

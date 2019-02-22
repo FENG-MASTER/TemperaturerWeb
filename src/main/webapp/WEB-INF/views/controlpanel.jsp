@@ -109,12 +109,11 @@
                 <tr >
                     <td><label class="layui-form-label">K<%=i%>:</label></td>
                     <td>
-                        <div class="layui-form-item">
-                                <div class="layui-inline"><input type="text" name="title" required lay-verify="required" placeholder="请输入"
+                                <div class="layui-inline" style="width: 100px;" ><input type="text" name="title" required lay-verify="required" placeholder="请输入"
                                                                  autocomplete="off" class="layui-input"></div>
-                                <div class="layui-inline">
+                                <div class="layui-inline" style="width: 100px;">
 
-                                    <select name="k<%=i%>Trigger" lay-verify="required">
+                                    <select name="k<%=i%>Trigger"  lay-verify="required">
                                         <option value="T1">T1</option>
                                         <option value="T2">T2</option>
                                         <option value="T3">T3</option>
@@ -124,18 +123,15 @@
 
                                     </select>
                                 </div>
-                                <div class="layui-inline">
+                                <div class="layui-inline" style="width: 100px;">
                                     <input type="text" name="title" required lay-verify="required" placeholder="请输入"
                                            autocomplete="off" class="layui-input">
 
                                 </div>
 
 
-                        </div>
                     </td>
                     <td>
-                        <div class="layui-form-item">
-                            <div class="layui-input-block">
                                 <select name="k<%=i%>TriggerType" lay-verify="required">
                                     <option value="T1">自动</option>
                                     <option value="T2">常开</option>
@@ -143,10 +139,6 @@
 
 
                                 </select>
-
-                            </div>
-
-                        </div>
                     </td>
                 </tr>
 

@@ -28,7 +28,7 @@
                 {field: 'bluetoothAddress', title: '地址', width:'30%',fixed: 'left'}
                 ,{field: 'name', title: '设备名称', width:'20%'}
                 ,{field: 'sn', title: '设备序列号', width:'25%'}
-                ,{field: 'ip', title: '设备IP', width:'25%'}
+                ,{field: 'phoneNum', title: '手机号', width:'25%'}
             ]]
         });
 
