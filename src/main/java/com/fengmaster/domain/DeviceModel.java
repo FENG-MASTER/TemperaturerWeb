@@ -16,7 +16,7 @@ public class DeviceModel {
     /**
      * 设备SN序列号,主KEY
      */
-    private String SN;
+    private String SN="0";
 
     /**
      * 设备对应的sim卡电话号码

@@ -3,20 +3,26 @@ package com.fengmaster.handler;
 import com.fengmaster.domain.DeviceModel;
 import com.fengmaster.event.ReceiveDeviceMsgEvent;
 import com.fengmaster.event.SendDeviceMsgEvent;
+import com.fengmaster.service.TcpService;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.Scanner;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 
 /**
  * Created by Feng-master on 19/02/15.
  */
-public class DeviceSocketHandler implements Runnable{
+public class DeviceSocketHandler extends Thread{
+
+    private final Logger logger= LoggerFactory.getLogger(TcpService.class.getName());
 
 
     /**
@@ -29,7 +35,6 @@ public class DeviceSocketHandler implements Runnable{
      */
     private Socket socket;
 
-    private Thread thread;
 
     private boolean stopFlag=false;
 
@@ -38,69 +43,84 @@ public class DeviceSocketHandler implements Runnable{
     public DeviceSocketHandler(DeviceModel deviceModel) {
         this.deviceModel = deviceModel;
         socket=deviceModel.getSocket();
-        thread=new Thread(this);
-        thread.start();
+        EventBus.getDefault().register(this);
     }
 
     @Override
     public void run() {
+        PrintWriter writer=null;
+        Scanner scanner=null;
+        StringBuffer stringBuffer=new StringBuffer();
 
-        BufferedWriter writer=null;
-        BufferedReader reader=null;
-
-        char[] buffer=new char[4096];
-        Arrays.fill(buffer,'\0');
 
         try {
             InputStream inputStream = socket.getInputStream();
-            reader=new BufferedReader(new InputStreamReader(inputStream));
+            scanner=new Scanner(inputStream);
 
             OutputStream outputStream=socket.getOutputStream();
-            writer=new BufferedWriter(new OutputStreamWriter(outputStream));
+            writer=new PrintWriter(new OutputStreamWriter(outputStream));
 
         } catch (IOException e) {
             e.printStackTrace();
         }
         while (!stopFlag){
+            //检查是否连接正常
+            if (!socket.isConnected()||socket.isClosed()||socket.isOutputShutdown()){
+                stopFlag=true;
+                break;
+            }
+
 
             if (!sendMsgQueue.isEmpty()){
                 //有内容要发送到设备
                 String msg = sendMsgQueue.poll();
-                try {
-                    writer.write(msg);
-                } catch (IOException e) {
-                    e.printStackTrace();
+                try{
+                    writer.println(msg);
+                    writer.flush();
+                }catch (Exception e){
+                    stopProgress();
+                    break;
                 }
 
             }
 
 
-            int readSize=0;
-            try {
-                //尝试读取数据
-                readSize = reader.read(buffer);
-            } catch (IOException e) {
-                e.printStackTrace();
+
+            if (!socket.isConnected()||socket.isClosed()||socket.isInputShutdown()){
+                stopFlag=true;
+                break;
             }
 
-            if (readSize!=0){
+
+            String readMsg=null;
+            //尝试读取数据
+
+            try {
+                readMsg=scanner.next();
+            }catch (Exception e){
+                stopProgress();
+                break;
+            }
+
+
+            if (readMsg!=null&&!readMsg.isEmpty()){
                 //读取到内容
-                String readMsg=new String(buffer);
+                logger.info("接受到信息:"+readMsg);
                 //发送接收到设备信息事件
                 ReceiveDeviceMsgEvent receiveDeviceMsgEvent = new ReceiveDeviceMsgEvent(deviceModel, readMsg);
                 EventBus.getDefault().post(receiveDeviceMsgEvent);
-
-                //清空buffer
-                Arrays.fill(buffer,'\0');
-
+                stringBuffer.setLength(0);
             }
 
         }
+
+        EventBus.getDefault().unregister(this);
     }
 
 
     @Subscribe(threadMode = ThreadMode.POSTING)
     public void sendToDevice(SendDeviceMsgEvent sendDeviceMsgEvent){
+        logger.info("接收到 发送信息请求");
         if (sendDeviceMsgEvent.getDeviceModel().equals(deviceModel)){
             //如果要发送的设备是当前handler处理的设备
             sendMsgQueue.add(sendDeviceMsgEvent.getMsg());
@@ -108,9 +128,17 @@ public class DeviceSocketHandler implements Runnable{
 
     }
 
+    @Subscribe(threadMode = ThreadMode.POSTING)
+    public void receiveMsg(ReceiveDeviceMsgEvent receiveDeviceMsgEvent){
+        logger.info("接收到 接收信息事件");
+        if (receiveDeviceMsgEvent.getDeviceModel().equals(deviceModel)){
+            EventBus.getDefault().post(new SendDeviceMsgEvent(deviceModel,receiveDeviceMsgEvent.getMsg()+"1"));
+        }
 
+    }
 
-    public void stop(){
+    public void stopProgress(){
         stopFlag=true;
     }
+
 }

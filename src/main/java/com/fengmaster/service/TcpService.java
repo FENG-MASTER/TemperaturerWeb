@@ -1,11 +1,15 @@
 package com.fengmaster.service;
 
 import com.fengmaster.domain.DeviceModel;
+import com.fengmaster.handler.DeviceSocketHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -32,14 +36,14 @@ public class TcpService implements Runnable{
     /**
      * 超时时间
      */
-    private int timeout=3000;
+    private int timeout=0;
 
     private List<DeviceModel> deviceModels=new ArrayList<>();
 
     public TcpService() {
         try {
             if (serverSocket==null){
-                serverSocket=new ServerSocket(port,10, Inet4Address.getLocalHost());
+                serverSocket=new ServerSocket(port);
                 logger.info("服务器在端口"+port+"等待消息");
             }
         } catch (IOException e) {
@@ -61,7 +65,10 @@ public class TcpService implements Runnable{
                 logger.info("收到来自设备的连接,设备地址:"+socket.getInetAddress()+"设备端口:"+socket.getPort());
                 socket.setSoTimeout(timeout);
 
-                deviceModels.add(new DeviceModel(socket));
+                DeviceModel model = new DeviceModel(socket);
+                deviceModels.add(model);
+
+
 
                 //TODO:测试用
 //                OutputStream outputStream=socket.getOutputStream();
@@ -69,6 +76,8 @@ public class TcpService implements Runnable{
 //                writer.write("{\"T\":\"C\"}");
 //                writer.flush();
 //                logger.info("写TC到socket中");
+                new DeviceSocketHandler(model).start();
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
