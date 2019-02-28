@@ -87,6 +87,8 @@ public class ControlWebSocket {
             return;
         }
 
+        logger.info("webSocket接收信息:"+message);
+
         //#开头为特殊命令,用于和服务器交互,其他
         if (message.toLowerCase().startsWith("#")){
             if (message.toLowerCase().substring(1).startsWith("connect")){
