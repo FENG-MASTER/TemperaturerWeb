@@ -52,6 +52,11 @@
 
 
     });
+
+
+    function changeFrame(url) {
+        $('#iframe_body').attr('src',url);
+    }
 </script>
 </body>
 </html>

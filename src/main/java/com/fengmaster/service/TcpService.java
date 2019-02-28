@@ -1,15 +1,13 @@
 package com.fengmaster.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fengmaster.domain.DeviceModel;
 import com.fengmaster.handler.DeviceSocketHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -65,9 +63,17 @@ public class TcpService implements Runnable{
                 logger.info("收到来自设备的连接,设备地址:"+socket.getInetAddress()+"设备端口:"+socket.getPort());
                 socket.setSoTimeout(timeout);
 
-                DeviceModel model = new DeviceModel(socket);
-                deviceModels.add(model);
-
+                //设备连接上后,必须主动发送SN码,这里用于接收SN码
+                int sn = readSN(socket);
+                if (sn==-1){
+                    //获取SN失败
+                    logger.error("获取SN码失败!");
+                }else {
+                    logger.info("连接设备SN为"+sn);
+                    DeviceModel model = new DeviceModel(socket);
+                    model.setSN(sn+"");
+                    deviceModels.add(model);
+                }
 
 
                 //TODO:测试用
@@ -76,7 +82,6 @@ public class TcpService implements Runnable{
 //                writer.write("{\"T\":\"C\"}");
 //                writer.flush();
 //                logger.info("写TC到socket中");
-                new DeviceSocketHandler(model).start();
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -85,6 +90,47 @@ public class TcpService implements Runnable{
 
         }
 
+    }
+
+
+    private int readSN(Socket socket){
+        InputStream inputStream = null;
+        try {
+            inputStream = socket.getInputStream();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Reader reader=new InputStreamReader(inputStream);
+
+        int len=0;
+        char [] buffer=new char[1024];
+        try {
+            len=reader.read(buffer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if (len>0){
+            String s = new String(buffer, 0, len);
+            ObjectMapper mapper=new ObjectMapper();
+            SNObj snObj=null;
+            try {
+                snObj=mapper.readValue(s,SNObj.class);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            if (snObj==null){
+                return -1;
+            }
+            return snObj.SN;
+        }else {
+            return -1;
+        }
+    }
+
+    private static class SNObj{
+        public int SN;
     }
 
 

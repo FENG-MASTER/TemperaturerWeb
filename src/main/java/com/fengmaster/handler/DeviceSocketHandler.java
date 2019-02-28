@@ -20,7 +20,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 /**
  * Created by Feng-master on 19/02/15.
  */
-public class DeviceSocketHandler extends Thread{
+public class DeviceSocketHandler{
 
     private final Logger logger= LoggerFactory.getLogger(TcpService.class.getName());
 
@@ -38,84 +38,126 @@ public class DeviceSocketHandler extends Thread{
 
     private boolean stopFlag=false;
 
-    private BlockingQueue<String> sendMsgQueue=new LinkedBlockingDeque<>();
+    /**
+     * 接受设备信息线程
+     */
+    private Thread readThread;
 
-    public DeviceSocketHandler(DeviceModel deviceModel) {
-        this.deviceModel = deviceModel;
-        socket=deviceModel.getSocket();
-        EventBus.getDefault().register(this);
-    }
+    private Runnable readRunable=new Runnable() {
+        @Override
+        public void run() {
+            Reader reader=null;
+            char [] buffer=new char[4096];
+            Arrays.fill(buffer,'\0');
+            try {
+                InputStream inputStream = socket.getInputStream();
+                reader=new InputStreamReader(inputStream);
 
-    @Override
-    public void run() {
-        PrintWriter writer=null;
-        Scanner scanner=null;
-        StringBuffer stringBuffer=new StringBuffer();
-
-
-        try {
-            InputStream inputStream = socket.getInputStream();
-            scanner=new Scanner(inputStream);
-
-            OutputStream outputStream=socket.getOutputStream();
-            writer=new PrintWriter(new OutputStreamWriter(outputStream));
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        while (!stopFlag){
-            //检查是否连接正常
-            if (!socket.isConnected()||socket.isClosed()||socket.isOutputShutdown()){
-                stopFlag=true;
-                break;
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+            while (!stopFlag){
 
+                if (!socket.isConnected()||socket.isClosed()||socket.isInputShutdown()){
+                    stopFlag=true;
+                    break;
+                }
 
-            if (!sendMsgQueue.isEmpty()){
-                //有内容要发送到设备
-                String msg = sendMsgQueue.poll();
-                try{
-                    writer.println(msg);
-                    writer.flush();
+                int readLen=0;
+                String readMsg=null;
+                //尝试读取数据
+
+                try {
+                    readLen=reader.read(buffer);
                 }catch (Exception e){
                     stopProgress();
                     break;
                 }
 
-            }
 
+                if (readLen>0){
+                    //读取到内容
+                    readMsg=new String(buffer,0,readLen);
+                    logger.info("接受到信息:"+readMsg);
+                    //发送接收到设备信息事件
+                    ReceiveDeviceMsgEvent receiveDeviceMsgEvent = new ReceiveDeviceMsgEvent(deviceModel, readMsg);
+                    EventBus.getDefault().post(receiveDeviceMsgEvent);
+                    Arrays.fill(buffer,'\0');
+                }
 
-
-            if (!socket.isConnected()||socket.isClosed()||socket.isInputShutdown()){
-                stopFlag=true;
-                break;
-            }
-
-
-            String readMsg=null;
-            //尝试读取数据
-
-            try {
-                readMsg=scanner.next();
-            }catch (Exception e){
-                stopProgress();
-                break;
-            }
-
-
-            if (readMsg!=null&&!readMsg.isEmpty()){
-                //读取到内容
-                logger.info("接受到信息:"+readMsg);
-                //发送接收到设备信息事件
-                ReceiveDeviceMsgEvent receiveDeviceMsgEvent = new ReceiveDeviceMsgEvent(deviceModel, readMsg);
-                EventBus.getDefault().post(receiveDeviceMsgEvent);
-                stringBuffer.setLength(0);
             }
 
         }
+    };
 
-        EventBus.getDefault().unregister(this);
+
+    /**
+     * 发送设备信息线程
+     */
+    private Thread writeThread;
+
+    private Runnable writeRunable=new Runnable() {
+        @Override
+        public void run() {
+            PrintWriter writer=null;
+
+            try {
+                OutputStream outputStream=socket.getOutputStream();
+                writer=new PrintWriter(new OutputStreamWriter(outputStream));
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            while (!stopFlag){
+                //检查是否连接正常
+                if (!socket.isConnected()||socket.isClosed()||socket.isOutputShutdown()){
+                    stopFlag=true;
+                    break;
+                }
+
+
+                if (!sendMsgQueue.isEmpty()){
+                    //有内容要发送到设备
+                    String msg = sendMsgQueue.poll();
+                    try{
+                        logger.info("发送数据到设备"+deviceModel.getSN()+",内容:"+msg);
+                        writer.println(msg);
+                        writer.flush();
+                    }catch (Exception e){
+                        stopProgress();
+                        break;
+                    }
+
+                }
+
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+
+            }
+        }
+    };
+
+
+
+
+
+    private BlockingQueue<String> sendMsgQueue=new LinkedBlockingDeque<>();
+
+    public DeviceSocketHandler(DeviceModel deviceModel) {
+        this.deviceModel = deviceModel;
+        socket=deviceModel.getSocket();
+        readThread=new Thread(readRunable);
+        writeThread=new Thread(writeRunable);
+        EventBus.getDefault().register(this);
+
+        readThread.start();
+        writeThread.start();
     }
+
 
 
     @Subscribe(threadMode = ThreadMode.POSTING)
@@ -139,6 +181,14 @@ public class DeviceSocketHandler extends Thread{
 
     public void stopProgress(){
         stopFlag=true;
+        EventBus.getDefault().unregister(this);
     }
 
+    public DeviceModel getDeviceModel() {
+        return deviceModel;
+    }
+
+    public void setDeviceModel(DeviceModel deviceModel) {
+        this.deviceModel = deviceModel;
+    }
 }

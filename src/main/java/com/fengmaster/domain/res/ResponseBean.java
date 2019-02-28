@@ -26,6 +26,9 @@ public class ResponseBean {
      */
     private Object data;
 
+    public ResponseBean() {
+    }
+
     public ResponseBean(int code, String msg, int count, Object data) {
         this.code = code;
         this.msg = msg;

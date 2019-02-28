@@ -1,5 +1,7 @@
 package com.fengmaster.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.net.Socket;
 
 /**
@@ -16,13 +18,14 @@ public class DeviceModel {
     /**
      * 设备SN序列号,主KEY
      */
-    private String SN="0";
+    private String SN="-1";
 
     /**
      * 设备对应的sim卡电话号码
      */
     private String phoneNum;
 
+    @JsonIgnore
     private Socket socket;
 
     public DeviceModel(Socket socket) {

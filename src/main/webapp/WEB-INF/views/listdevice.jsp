@@ -11,6 +11,8 @@
     <title>设备列表</title>
     <link rel="stylesheet" href="../layui/css/layui.css">
     <script src="../layui/layui.js"></script>
+    <script src="../jquery.js"></script>
+
 </head>
 
 <script>
@@ -32,12 +34,21 @@
             ]]
         });
 
+        //监听行单击事件（单击事件为：row）
+        table.on('row(deviceList)', function(obj){
+            var data = obj.data;
+
+            //标注选中样式
+            obj.tr.addClass('layui-table-click').siblings().removeClass('layui-table-click');
+            parent.changeFrame('./device/controlpanel?SN='+obj.data.sn);
+        });
+
     });
 
 </script>
 
 <body>
-<table id="deviceList" lay-filter="list"></table>
+<table id="deviceList" lay-filter="deviceList"></table>
 
 </body>
 </html>
