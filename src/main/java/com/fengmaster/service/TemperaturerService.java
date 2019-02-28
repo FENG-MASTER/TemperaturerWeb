@@ -26,6 +26,11 @@ public class TemperaturerService {
     }
 
 
+    public void removeDevice(DeviceModel deviceModel){
+        tcpService.getDeviceModels().remove(deviceModel);
+    }
+
+
 
 
 

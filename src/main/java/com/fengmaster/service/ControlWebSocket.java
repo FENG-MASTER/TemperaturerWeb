@@ -89,6 +89,17 @@ public class ControlWebSocket {
 
         logger.info("webSocket接收信息:"+message);
 
+        if (deviceSocketHandler!=null&&deviceSocketHandler.isStop()){
+            //如果设备已经下线,告诉前端
+            temperaturerService.removeDevice(deviceSocketHandler.getDeviceModel());
+            ResponseBean responseBean=new ResponseBean();
+            responseBean.setCode(-2);
+            responseBean.setMsg("设备已经断开和服务器连接,无法通讯");
+            sendMessage(responseBean);
+
+            return;
+        }
+
         //#开头为特殊命令,用于和服务器交互,其他
         if (message.toLowerCase().startsWith("#")){
             if (message.toLowerCase().substring(1).startsWith("connect")){
@@ -104,15 +115,7 @@ public class ControlWebSocket {
                     responseBean.setCode(0);
                     responseBean.setMsg("连接成功");
                 }
-                ObjectMapper mapper=new ObjectMapper();
-                String jsonStr="";
-                try {
-                    jsonStr=mapper.writeValueAsString(responseBean);
-                } catch (JsonProcessingException e) {
-                    e.printStackTrace();
-                }
-
-                sendMessage("#"+jsonStr);
+                sendMessage(responseBean);
             }
 
 
@@ -154,6 +157,20 @@ public class ControlWebSocket {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void sendMessage(ResponseBean responseBean){
+        ObjectMapper mapper=new ObjectMapper();
+        String jsonStr="";
+        try {
+            jsonStr=mapper.writeValueAsString(responseBean);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        sendMessage("#"+jsonStr);
+
+
     }
 
 }

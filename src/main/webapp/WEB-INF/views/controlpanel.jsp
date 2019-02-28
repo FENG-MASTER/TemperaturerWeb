@@ -71,9 +71,9 @@
                                         <div class="item-inner">
                                             <div class="item-title label" style="width: 50%">自动查询</div>
                                             <div class="item-input" style="width: 50%">
-                                                <label class="label-switch"  onchange="autoQuery()">
+                                                <label class="label-switch" onchange="autoQuery()">
                                                     <input type="checkbox" id="swAutoQuery">
-                                                    <div class="checkbox" ></div>
+                                                    <div class="checkbox"></div>
                                                 </label>
                                             </div>
                                         </div>
@@ -279,7 +279,7 @@
 
             <div class="content-block">
                 <div class="row">
-                    <div class="col-50"><a id="queryButton" class="button button-big button-fill button">查询</a></div>
+                    <div class="col-50"><a id="queryButton" onclick="query()" class="button button-big button-fill button">查询</a></div>
                     <div class="col-50"><a id="sendButton" onclick="sendParm()"
                                            class="button button-big button-fill button-success">发送</a></div>
                 </div>
@@ -325,7 +325,7 @@
     };
 
     webSocket.onopen = function () {
-        send("#connect " + $('#SN').val());
+        send("#connect " + $('#sn').val());
     };
 
     webSocket.onclose = function () {
@@ -341,12 +341,18 @@
             if (jmsg["code"] == "0") {
                 alert("连接成功");
                 connectFlag = true;
-            } else {
+            } else if (jmsg["code"] == "-1") {
                 alert("连接失败" + jmsg["msg"]);
                 connectFlag = false;
                 $('#queryButton').addClass("disabled");
                 $('#sendButton').addClass("disabled");
 
+            }else if (jmsg["code"] == "-2"){
+                alert("设备错误" + jmsg["msg"]);
+
+                setTimeout(function () {
+                    goTo('/device/list');
+                },2000)
             }
 
         } else {
@@ -384,9 +390,9 @@
             //开启自动查询
             $('#queryButton').addClass("disabled");
             $('#selectAutoQueryInterval').show();
-            autoQueryFlag=true;
-        }else {
-            autoQueryFlag=false;
+            autoQueryFlag = true;
+        } else {
+            autoQueryFlag = false;
             $('#queryButton').removeClass("disabled");
             $('#selectAutoQueryInterval').hide();
 
@@ -396,10 +402,20 @@
 
 
     /**
+     *查询设备信息
+     */
+    function query() {
+        if (!connectFlag || autoQueryFlag) {
+            return
+        }
+        send('{"SN":'+$('#sn').val()+',"T":"C"}')
+    }
+
+    /**
      *发送参数到设备
      */
     function sendParm() {
-        if (!connectFlag||autoQueryFlag) {
+        if (!connectFlag || autoQueryFlag) {
             return
         }
         var formatData = {};

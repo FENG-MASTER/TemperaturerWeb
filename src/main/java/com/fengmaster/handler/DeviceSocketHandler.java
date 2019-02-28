@@ -58,8 +58,8 @@ public class DeviceSocketHandler{
             }
             while (!stopFlag){
 
-                if (!socket.isConnected()||socket.isClosed()||socket.isInputShutdown()){
-                    stopFlag=true;
+                if (!socket.isConnected()||socket.isClosed()||socket.isInputShutdown()||isServerClose(socket)){
+                    stopProgress();
                     break;
                 }
 
@@ -110,8 +110,8 @@ public class DeviceSocketHandler{
             }
             while (!stopFlag){
                 //检查是否连接正常
-                if (!socket.isConnected()||socket.isClosed()||socket.isOutputShutdown()){
-                    stopFlag=true;
+                if (!socket.isConnected()||socket.isClosed()||socket.isOutputShutdown()||isServerClose(socket)){
+                    stopProgress();
                     break;
                 }
 
@@ -179,6 +179,15 @@ public class DeviceSocketHandler{
 
     }
 
+    private Boolean isServerClose(Socket socket){
+        try{
+            socket.sendUrgentData(0xFF);//发送1个字节的紧急数据，默认情况下，服务器端没有开启紧急数据处理，不影响正常通信
+            return false;
+        }catch(Exception se){
+            return true;
+        }
+    }
+
     public void stopProgress(){
         stopFlag=true;
         EventBus.getDefault().unregister(this);
@@ -190,5 +199,9 @@ public class DeviceSocketHandler{
 
     public void setDeviceModel(DeviceModel deviceModel) {
         this.deviceModel = deviceModel;
+    }
+
+    public boolean isStop() {
+        return stopFlag;
     }
 }
